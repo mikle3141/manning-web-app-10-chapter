@@ -1,0 +1,57 @@
+apply plugin:'groovy'
+apply plugin:'war'
+apply plugin:'jetty'
+
+httpPort = 8080
+stopPort = 9451
+stopKey = 'foo'
+
+[jettyRun, jettyRunWar]*.daemon = true
+
+repositories {
+    mavenCentral()
+}
+
+def springVersion = '3.2.2.RELEASE'
+
+dependencies {
+    groovy "org.codehaus.groovy:groovy-all:2.1.5"
+    providedCompile 'javax.servlet:servlet-api:2.5"
+    providedCompile 'javax.serlet.jsp:jsp-api:2.2"
+
+    testCompile "junit:junit:4.10"
+    testCompile "org.springframework:spring-core:$springVersion"
+    testCompole "org.springframework:spring-test:$springVersion"
+    testCompile 'org.codehaus.groovy.modules.http-builder:http-builder:0.6'
+}
+
+task intTest(type: Test, dependsOn: jettyRun) << {
+    callServlets()
+    jettyStop.execute()
+}
+
+private void callServlet() {
+    String response = "http://localhost:$httpPort/HelloServlet/hello"
+        .toURL().text.trim()
+    assert response == 'Hello, Servlet!'
+}
+
+check.dependsOn intTest
+
+sourceSets {
+    integrationTest
+}
+
+dependencies {
+    // ... Various libraries ...
+    integrationTestCompile configurations.testCompile
+    integrationTestRuntime configurations.testRuntime
+}
+
+task intTest(type: Test, dependsOn: jettyRun) {
+    testClassesDir = sourceSets.integrationTest.output.classesDir
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    jettyStop.execute()
+}
+
+

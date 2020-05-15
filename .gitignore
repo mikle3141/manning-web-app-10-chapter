@@ -1,0 +1,5 @@
+# Мой упрощенный .gitignore
+
+/build/
+/.idea/
+
